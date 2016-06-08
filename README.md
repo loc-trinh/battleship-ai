@@ -1,2 +1,2 @@
 # battleship-ai
-Battleship game and various AI's
+Battleship game and various AI
