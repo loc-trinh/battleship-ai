@@ -10,14 +10,15 @@ class Board:
     def __init__(self):
         # ===== Board setup ===== #
         self.board = []
-        self.ships = [5, 4, 3 ,3 ,2]  
+        self.ships = [5,4,3,3,2]  
         self.ship_locations = set()
         self.generate_board()
 
         # ===== Graphics setup ====== #
         self.window = tk.Tk()
         self.window.title("Battleship")
-        self.canvas = tk.Canvas(self.window, width=400, height=400)
+        self.canvas = tk.Canvas(self.window, width=300, height=300)
+        self.GRID_SIZE = 30
         self.draw_board()
         self.canvas.pack()
 
@@ -75,8 +76,8 @@ class Board:
                 color = "white"
             else: 
                 color = "gray" + str(self.board[i]*5)
-            self.canvas.create_rectangle(col*40, row*40, 
-                                         col*40+40, row*40+40,
+            self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE, 
+                                         (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
                                          fill=color)
 
     def play(self, move):
@@ -90,15 +91,18 @@ class Board:
             row, col = index/10, index%10
             hit = not self.board[index] == '-'
             if hit:
-                self.canvas.create_rectangle(col*40, row*40, col*40+40, row*40+40,
+                self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE,
+                                            (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
                                             fill="firebrick1")
                 ship = self.board[index]
                 self.board[index] = 'X'
             else:
                 self.board[index] = 'x'
                 
-            self.canvas.create_line(col*40, row*40, col*40+40, row*40+40)
-            self.canvas.create_line(col*40, row*40+40, col*40+40, row*40)
+            self.canvas.create_line(col*self.GRID_SIZE, row*self.GRID_SIZE, 
+                                    (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE)
+            self.canvas.create_line(col*self.GRID_SIZE, (row+1)*self.GRID_SIZE, 
+                                    (col+1)*self.GRID_SIZE, row*self.GRID_SIZE)
             self.window.update()
             if hit:
                 return (hit, ship)
