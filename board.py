@@ -17,10 +17,11 @@ class Board:
         # ===== Graphics setup ====== #
         self.window = tk.Tk()
         self.window.title("Battleship")
+        self.window.configure(background="white")
         self.canvas = tk.Canvas(self.window, width=300, height=300)
         self.GRID_SIZE = 30
         self.draw_board()
-        self.canvas.pack()
+        self.canvas.grid(row=1, column=1, columnspan=10, rowspan=10)
 
 
     def __str__(self):
@@ -70,6 +71,18 @@ class Board:
 
     def draw_board(self):
         """ Draw the graphical grid """
+
+        #Row and column labels and spacers
+        tk.Label(self.window, text="A   B   C   D   E   F   G   H   I   J", 
+                 font=("Helvetica", 15), 
+                 bg="white").grid(row=0, column=1, columnspan=10)
+        tk.Label(self.window, text="", bg="white").grid(row=11, column=1, columnspan=10)
+        tk.Label(self.window, text="0 1 2 3 4 5 6 7 8 9", wraplength=1, 
+                 font=("Helvetica", 18), 
+                 bg="white").grid(row=1, column=0, rowspan=10, padx=6)
+        tk.Label(self.window, text="", bg="white").grid(row=1, column=11, rowspan=10, padx=5)
+
+        #Board
         for i in range(100):
             row, col = i/10, i%10
             if self.board[i] == '-':
@@ -79,6 +92,7 @@ class Board:
             self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE, 
                                          (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
                                          fill=color)
+
 
     def play(self, move):
         """ Play a move. Return (True, ship) or (False, -1) if there's a ship at location

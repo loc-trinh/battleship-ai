@@ -10,5 +10,5 @@ board = Board()
 for i in list("ABCDEFGHIJ"):
     for j in list("0123456789"):
         print board.play(i+j)
-        time.sleep(.3)
+        time.sleep(.2)
 board.display()
