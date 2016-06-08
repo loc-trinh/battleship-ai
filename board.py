@@ -4,14 +4,23 @@
 # LT 6/7/16
 
 import random
+import Tkinter as tk
 
 class Board:
     def __init__(self):
+        # ===== Board setup ===== #
         self.board = []
-        self.ships = [2,3,3,4,5] 
+        self.ships = [5, 4, 3 ,3 ,2]  
         self.ship_locations = set()
         self.generate_board()
-       
+
+        # ===== Graphics setup ====== #
+        self.window = tk.Tk()
+        self.window.title("Battleship")
+        self.canvas = tk.Canvas(self.window, width=400, height=400)
+        self.draw_board()
+        self.canvas.pack()
+
 
     def __str__(self):
         """ Return printed board in grid fashion """ 
@@ -23,6 +32,12 @@ class Board:
         return board_string
 
 
+    def display(self):
+        """ Display Tkinter graphical board """
+
+        self.window.mainloop()
+
+
     def generate_board(self):
         """ Initialize random board. Using the following pieces:
             Scout(2), Submarine(3), Cruiser(3), Battleship(4), Carrier(5)
@@ -30,7 +45,7 @@ class Board:
 
         self.board = ['-'] * 100                #reset board
         while True:
-            ship_locations = []
+            ship_locations = {}
             for ship in self.ships:
                 # pick a row or column
                 if random.randint(0,1):
@@ -42,34 +57,61 @@ class Board:
 
                 # randomly draw a ship
                 index = random.randrange(10-ship)
-                ship_locations += indicies[index:index+ship]
+                for i in indicies[index:index+ship]:
+                    ship_locations[i] = ship
 
-            if len(set(ship_locations)) == 17:
-                self.ship_locations = set(ship_locations)
+            if len(set(ship_locations.keys())) == 17:
+                self.ship_locations = set(ship_locations.keys())
                 for i in self.ship_locations:
-                    self.board[i] = 'o'
+                    self.board[i] = ship_locations[i] 
                 break
 
+
+    def draw_board(self):
+        """ Draw the graphical grid """
+        for i in range(100):
+            row, col = i/10, i%10
+            if self.board[i] == '-':
+                color = "white"
+            else: 
+                color = "gray" + str(self.board[i]*5)
+            self.canvas.create_rectangle(col*40, row*40, 
+                                         col*40+40, row*40+40,
+                                         fill=color)
+
     def play(self, move):
-        """ Play a move. Return "HIT" or "MISS" if there's a ship at location
+        """ Play a move. Return (True, ship) or (False, -1) if there's a ship at location
         """
 
-        index = self.convert_move_to_index(move)
+        index = self._convert_move_to_index(move)
         if index == -1:
             return "Invalid move!"
         else:
-            self.board[index] = 'X' if self.board[index] == 'o' else 'x'
-            print self.__str__()
-            return "HIT" if self.board[index] == 'X' else "MISS"
+            row, col = index/10, index%10
+            hit = not self.board[index] == '-'
+            if hit:
+                self.canvas.create_rectangle(col*40, row*40, col*40+40, row*40+40,
+                                            fill="firebrick1")
+                ship = self.board[index]
+                self.board[index] = 'X'
+            else:
+                self.board[index] = 'x'
+                
+            self.canvas.create_line(col*40, row*40, col*40+40, row*40+40)
+            self.canvas.create_line(col*40, row*40+40, col*40+40, row*40)
+            self.window.update()
+            if hit:
+                return (hit, ship)
+            else:
+                return (hit, -1)
 
 
-    def convert_move_to_index(self, move):
-        """ Helper functions to convert moves into board index """
+    def _convert_move_to_index(self, move):
+        """ Helper functions to convert valid moves into board index """
 
         if len(move) != 2:
             return -1
-        column = move[0]
-        row = move[1]
+        column,row = move[0], move[1]
         if column in "ABCDEFGHIJ" and row in "0123456789":
             return int(row)*10 + ord(column)-65
         return -1
