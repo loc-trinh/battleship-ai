@@ -9,7 +9,4 @@ import time
 
 board = Board()
 player = Player(board)
-for i in range(10):
-    player.play_random()
-    player.board.generate_board()
-player.board.display()
+print player.play_diagonal_hunt()

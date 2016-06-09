@@ -5,21 +5,25 @@
 
 import random
 import Tkinter as tk
+import time
 
 class Board:
-    def __init__(self):
+    def __init__(self, visualization=True):
+        self.visualization = visualization
+
         # ===== Board setup ===== #
         self.board = []
         self.ships = [5,4,3,3,2]  
         self.ship_locations = set()
 
         # ===== Graphics setup ====== #
-        self.window = tk.Tk()
-        self.window.title("Battleship")
-        self.window.configure(background="white")
-        self.canvas = tk.Canvas(self.window, width=300, height=300)
-        self.GRID_SIZE = 30
-        self.canvas.grid(row=1, column=1, columnspan=10, rowspan=10)
+        if self.visualization:
+            self.window = tk.Tk()
+            self.window.title("Battleship")
+            self.window.configure(background="white")
+            self.canvas = tk.Canvas(self.window, width=300, height=300)
+            self.GRID_SIZE = 30
+            self.canvas.grid(row=1, column=1, columnspan=10, rowspan=10)
 
         self.generate_board()
 
@@ -67,7 +71,8 @@ class Board:
                 for i in self.ship_locations:
                     self.board[i] = ship_locations[i] 
                 break
-        self.draw_board()
+        if self.visualization:
+            self.draw_board()
 
     def draw_board(self):
         """ Draw the graphical grid """
@@ -105,23 +110,23 @@ class Board:
             row, col = index/10, index%10
             hit = not self.board[index] == '-'
             if hit:
-                self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE,
-                                            (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
-                                            fill="firebrick1")
                 ship = self.board[index]
                 self.board[index] = 'X'
             else:
                 self.board[index] = 'x'
                 
-            self.canvas.create_line(col*self.GRID_SIZE, row*self.GRID_SIZE, 
+            if self.visualization:
+                if hit:
+                    self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE,
+                                            (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
+                                            fill="firebrick1")
+                self.canvas.create_line(col*self.GRID_SIZE, row*self.GRID_SIZE, 
                                     (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE)
-            self.canvas.create_line(col*self.GRID_SIZE, (row+1)*self.GRID_SIZE, 
+                self.canvas.create_line(col*self.GRID_SIZE, (row+1)*self.GRID_SIZE, 
                                     (col+1)*self.GRID_SIZE, row*self.GRID_SIZE)
-            self.window.update()
-            if hit:
-                return (hit, ship)
-            else:
-                return (hit, -1)
+                self.window.update()
+                time.sleep(.1)
+            return (hit, ship) if hit else (hit, -1)
 
 
     def _convert_move_to_index(self, move):
