@@ -11,9 +11,10 @@ from matplotlib import pyplot as plt
 board = Board(visualization=False)
 player = Player(board)
 results = {i:0 for i in range(101)} 
-trials = 10000
+trials = 1000
 for i in range(trials):
-    results[player.play_diagonal_hunt()] += 1
+    print i
+    results[player.play_smart()] += 1
     player.board.generate_board()
 
 print "Average: %f" % (sum([i*results[i] for i in results.keys()])/float(trials)) 

@@ -13,7 +13,7 @@ class Board:
 
         # ===== Board setup ===== #
         self.board = []
-        self.ships = [5,4,3,3,2]  
+        self.ships = (("1",5),("2",4),("3",3), ("4",3), ("5",2)) 
         self.ship_locations = set()
 
         # ===== Graphics setup ====== #
@@ -46,13 +46,13 @@ class Board:
 
     def generate_board(self):
         """ Initialize random board. Using the following pieces:
-            Scout(2), Submarine(3), Cruiser(3), Battleship(4), Carrier(5)
+            Destroyer(2), Submarine(3), Cruiser(3), Battleship(4), Carrier(5)
         """
 
         self.board = ['-'] * 100                #reset board
         while True:
-            ship_locations = {}
-            for ship in self.ships:
+            locations = {}
+            for ship_id, ship_length in self.ships:
                 # pick a row or column
                 if random.randint(0,1):
                     column = random.randrange(10)
@@ -62,14 +62,14 @@ class Board:
                     indicies = [row*10 + i for i in range(10)]
 
                 # randomly draw a ship
-                index = random.randrange(10-ship)
-                for i in indicies[index:index+ship]:
-                    ship_locations[i] = self.ships.index(ship)+1
+                index = random.randrange(10-ship_length)
+                for i in indicies[index:index+ship_length]:
+                    locations[i] = ship_id 
 
-            if len(set(ship_locations.keys())) == 17:
-                self.ship_locations = set(ship_locations.keys())
+            if len(set(locations.keys())) == 17:                #valid layout
+                self.ship_locations = set(locations.keys())
                 for i in self.ship_locations:
-                    self.board[i] = ship_locations[i] 
+                    self.board[i] = locations[i] 
                 break
         if self.visualization:
             self.draw_board()
@@ -93,7 +93,7 @@ class Board:
             if self.board[i] == '-':
                 color = "white"
             else: 
-                color = "gray" + str(self.board[i]*5)
+                color = "gray" + str(int(self.board[i])*5)
             self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE, 
                                          (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
                                          fill=color)
@@ -110,10 +110,10 @@ class Board:
             row, col = index/10, index%10
             hit = not self.board[index] == '-'
             if hit:
-                ship = self.board[index]
-                self.board[index] = 'X'
-            else:
+                ship_id = self.board[index]
                 self.board[index] = 'x'
+            else:
+                self.board[index] = 'o'
                 
             if self.visualization:
                 if hit:
@@ -126,7 +126,7 @@ class Board:
                                     (col+1)*self.GRID_SIZE, row*self.GRID_SIZE)
                 self.window.update()
                 time.sleep(.1)
-            return (hit, ship) if hit else (hit, -1)
+            return (hit, ship_id) if hit else (hit, -1)
 
 
     def _convert_move_to_index(self, move):

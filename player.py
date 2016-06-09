@@ -21,7 +21,7 @@ class Player:
 
 
     def reset(self):
-        self.remaining_ships = {1:5, 2:4, 3:3, 4:3, 5:2}
+        self.remaining_ships = {"1":5, "2":4, "3":3, "4":3, "5":2}
         self.moves = ["".join(move) for move in list(itertools.product(list("ABCDEFGHIJ"), list("0123456789")))]
         self.move_counter = 0
 
@@ -43,34 +43,15 @@ class Player:
     def play_random(self):
         self.reset()
         random.shuffle(self.moves)
-        for move in self.moves:
-            hit, ship = self.board.play(move)
+        while not self.won():
+            hit, ship_id = self.board.play(self.moves.pop())
             if hit:
-                self.remaining_ships[ship] -= 1   
-            if self.won():
-                return self.move_counter 
+                self.remaining_ships[ship_id] -= 1   
             self.move_counter += 1
+        return self.move_counter
 
 
     def play_hunt(self):
-        self.reset()
-        random.shuffle(self.moves)
-        moves_played = set()
-        while len(self.moves) != 0:
-            move = self.moves.pop()
-            if move in moves_played:
-                continue
-            hit, ship = self.board.play(move)
-            moves_played.add(move)
-            if hit:
-                self.remaining_ships[ship] -= 1   
-                self.moves.extend(self.get_neighbor_moves(move))   
-            if self.won():
-                return self.move_counter
-            self.move_counter += 1
-
-
-    def play_diagonal_hunt(self):
         self.reset()
         self.moves = ['A0', 'A2', 'A4', 'A6', 'A8', 'B1', 'B3', 'B5', 'B7', 'B9', 
                       'C0', 'C2', 'C4', 'C6', 'C8', 'D1', 'D3', 'D5', 'D7', 'D9', 
@@ -79,16 +60,159 @@ class Player:
                       'I0', 'I2', 'I4', 'I6', 'I8', 'J1', 'J3', 'J5', 'J7', 'J9']
         random.shuffle(self.moves)
         moves_played = set()
-        while len(self.moves) != 0:
+        while not self.won():
             move = self.moves.pop()
             if move in moves_played:
                 continue
-            hit, ship = self.board.play(move)
+            hit, ship_id = self.board.play(move)
             moves_played.add(move)
             if hit:
-                self.remaining_ships[ship] -= 1   
+                self.remaining_ships[ship_id] -= 1   
                 self.moves.extend(self.get_neighbor_moves(move))   
-            if self.won():
-                return self.move_counter
+            self.move_counter += 1 
+        return self.move_counter
+
+
+    def play_smart(self):
+        self.reset()
+        observations = ['-']*100
+        ships_hit = []
+        moves_played = set()
+        while not self.won():
+            belief = [0]*100
+            self.update(belief, observations, ships_hit, self.remaining_ships)
+            max_hits = max(belief)
+            moves = [i for i in range(100) if belief[i] == max_hits]
+            move_index = random.choice(moves)
+            move = self._convert_index_to_move(move_index)
+            if move in moves_played:
+                continue
+            hit, ship_id = self.board.play(move)
+            moves_played.add(move)
+            if hit:
+                observations[move_index] = ship_id
+                self.remaining_ships[ship_id] -= 1
+                ships_hit.append(ship_id)
+            else:
+                observations[move_index] = 'o'
             self.move_counter += 1
+        return self.move_counter
+
+    def update(self, belief, obs, ships_hit, remaining_ships):
+        for i in range(100):
+            if obs[i] != '-':
+                belief[i] = -10000
+        for ship_id in remaining_ships:
+            parts = remaining_ships[ship_id]
+            if parts == 0:
+                continue
+            if ship_id in ships_hit:
+                indicies = [i for i, x in enumerate(obs) if x == ship_id]
+                if len(indicies) > 1:
+                    if abs(indicies[1]-indicies[0]) == 1:           #horizontal
+                        min_ship = min(indicies)
+                        max_ship = max(indicies)
+                        for i in range(parts+1):
+                            row = min_ship / 10
+                            for j in range(min_ship-1, min_ship-1-i, -1):
+                                if j / 10 != row:
+                                    continue
+                                if obs[j] != "-":
+                                    break
+                                belief[j] += 100
+                            for j in range(max_ship+1, max_ship+i+1):
+                                if j / 10 != row:
+                                    continue
+                                if obs[j] != "-":
+                                    break
+                                belief[j] += 100
+                    else:                                           #vertical
+                        min_ship = min(indicies)
+                        max_ship = max(indicies)
+                        for i in range(parts+1):
+                            col = min_ship % 10
+                            for j in range(min_ship-10, min_ship-i*11, -10):
+                                if j % 10 != col or j < 0 or j > 99:
+                                    continue
+                                belief[j] += 100
+                            for j in range(max_ship+10, max_ship+i*11, 10):
+                                if j % 10 != col or j < 0 or j > 99:
+                                    continue
+                                if obs[j] != "-":
+                                    break
+                                belief[j] += 100
+                else:
+                    min_ship = max_ship = indicies[0] 
+                    for i in range(parts+1):
+                        row = min_ship / 10
+                        for j in range(min_ship-1, min_ship-1-i, -1):
+                            if j / 10 != row:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 100
+                        for j in range(max_ship+1, max_ship+i+1):
+                            if j / 10 != row:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 100
+                    for i in range(parts+1):
+                        col = min_ship % 10
+                        for j in range(min_ship-10, min_ship-i*11, -10):
+                            if j % 10 != col or j < 0 or j > 99:
+                                continue
+                            belief[j] += 100
+                        for j in range(max_ship+10, max_ship+i*11, 10):
+                            if j % 10 != col or j < 0 or j > 99:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 100
+            else:
+                for k in range(100):
+                    if obs[k] != "-":
+                        continue
+                    min_ship = max_ship = k 
+                    for i in range(parts+1):
+                        row = min_ship / 10
+                        for j in range(min_ship, min_ship-i, -1):
+                            if j / 10 != row:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 1
+                        for j in range(max_ship, max_ship+i):
+                            if j / 10 != row:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 1
+                    for i in range(parts+1):
+                        col = min_ship % 10
+                        for j in range(min_ship, min_ship-i*10, -10):
+                            if j % 10 != col or j < 0 or j > 99:
+                                continue
+                            belief[j] += 1
+                        for j in range(max_ship, max_ship+i*10, 10):
+                            if j % 10 != col or j < 0 or j > 99:
+                                continue
+                            if obs[j] != "-":
+                                break
+                            belief[j] += 1
+                
+
+
+    def _convert_index_to_move(self, index):
+        cols = list("ABCDEFGHIJ")
+        rows = list("0123456789")
+        return cols[index%10] + rows[index/10]
+
+
+
+
+
+
+
+
 

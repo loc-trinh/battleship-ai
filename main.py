@@ -9,4 +9,4 @@ import time
 
 board = Board()
 player = Player(board)
-print player.play_diagonal_hunt()
+print player.play_smart()
