@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 .board.py.swp
+.main.py.swp
+.player.py.swp
 
 # C extensions
 *.so

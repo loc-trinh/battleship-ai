@@ -12,7 +12,6 @@ class Board:
         self.board = []
         self.ships = [5,4,3,3,2]  
         self.ship_locations = set()
-        self.generate_board()
 
         # ===== Graphics setup ====== #
         self.window = tk.Tk()
@@ -20,8 +19,9 @@ class Board:
         self.window.configure(background="white")
         self.canvas = tk.Canvas(self.window, width=300, height=300)
         self.GRID_SIZE = 30
-        self.draw_board()
         self.canvas.grid(row=1, column=1, columnspan=10, rowspan=10)
+
+        self.generate_board()
 
 
     def __str__(self):
@@ -60,14 +60,14 @@ class Board:
                 # randomly draw a ship
                 index = random.randrange(10-ship)
                 for i in indicies[index:index+ship]:
-                    ship_locations[i] = ship
+                    ship_locations[i] = self.ships.index(ship)+1
 
             if len(set(ship_locations.keys())) == 17:
                 self.ship_locations = set(ship_locations.keys())
                 for i in self.ship_locations:
                     self.board[i] = ship_locations[i] 
                 break
-
+        self.draw_board()
 
     def draw_board(self):
         """ Draw the graphical grid """
