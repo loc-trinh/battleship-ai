@@ -8,10 +8,10 @@ from player import Player
 import numpy as np
 from matplotlib import pyplot as plt
 
-board = Board(visualization=False)
+board = Board(visualization=True)
 player = Player(board)
 results = {i:0 for i in range(101)} 
-trials = 1000
+trials = 100
 for i in range(trials):
     print i
     results[player.play_smart()] += 1

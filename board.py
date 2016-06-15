@@ -9,6 +9,14 @@ import time
 
 class Board:
     def __init__(self, visualization=True):
+        """ Battleship boards with the following ship pieces:
+            '1': Carrier(5)
+            '2': Battleship(4)
+            '3': Cruiser(3)
+            '4': Submarine(3)
+            '5': Cuiser(2)
+        """
+
         self.visualization = visualization
 
         # ===== Board setup ===== #
@@ -45,39 +53,44 @@ class Board:
 
 
     def generate_board(self):
-        """ Initialize random board. Using the following pieces:
-            Destroyer(2), Submarine(3), Cruiser(3), Battleship(4), Carrier(5)
+        """ Initialize random board. Pick subset of columns or rows
+            based on ship orientation. Check if ships collide with through
+            set intersections
         """
 
-        self.board = ['-'] * 100                #reset board
-        while True:
+        self.board = ['-'] * 100                # Reset board
+        self.ship_locations = set()
+        placed = False 
+        while not placed:
             locations = {}
             for ship_id, ship_length in self.ships:
-                # pick a row or column
-                if random.randint(0,1):
+
+                orientation = random.randint(0,1) # 1 = column, 0 = row
+                if orientation:
                     column = random.randrange(10)
                     indicies = [column+i for i in range(0,100,10)]
                 else:
                     row = random.randrange(10)
                     indicies = [row*10 + i for i in range(10)]
 
-                # randomly draw a ship
+                # Randomly draw a ship
                 index = random.randrange(10-ship_length)
                 for i in indicies[index:index+ship_length]:
                     locations[i] = ship_id 
 
-            if len(set(locations.keys())) == 17:                #valid layout
-                self.ship_locations = set(locations.keys())
-                for i in self.ship_locations:
-                    self.board[i] = locations[i] 
+            if len(set(locations.keys())) == 17:                # Valid layout
+                for i in locations:
+                    self.board[i] = locations[i]
+                    self.ship_locations.add(i)
                 break
+
         if self.visualization:
             self.draw_board()
 
     def draw_board(self):
         """ Draw the graphical grid """
 
-        #Row and column labels and spacers
+        # Draw row and column labels and spacers
         tk.Label(self.window, text="A   B   C   D   E   F   G   H   I   J", 
                  font=("Helvetica", 15), 
                  bg="white").grid(row=0, column=1, columnspan=10)
@@ -87,13 +100,10 @@ class Board:
                  bg="white").grid(row=1, column=0, rowspan=10, padx=6)
         tk.Label(self.window, text="", bg="white").grid(row=1, column=11, rowspan=10, padx=5)
 
-        #Board
+        # Draw board
         for i in range(100):
             row, col = i/10, i%10
-            if self.board[i] == '-':
-                color = "white"
-            else: 
-                color = "gray" + str(int(self.board[i])*5)
+            color = "white" if self.board[i] == '-' else "gray" + str(int(self.board[i])*5)
             self.canvas.create_rectangle(col*self.GRID_SIZE, row*self.GRID_SIZE, 
                                          (col+1)*self.GRID_SIZE, (row+1)*self.GRID_SIZE,
                                          fill=color)
@@ -104,6 +114,7 @@ class Board:
         """
 
         index = self._convert_move_to_index(move)
+
         if index == -1:
             return "Invalid move!"
         else:
@@ -125,7 +136,7 @@ class Board:
                 self.canvas.create_line(col*self.GRID_SIZE, (row+1)*self.GRID_SIZE, 
                                     (col+1)*self.GRID_SIZE, row*self.GRID_SIZE)
                 self.window.update()
-                time.sleep(.1)
+                time.sleep(.08)
             return (hit, ship_id) if hit else (hit, -1)
 
 

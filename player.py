@@ -101,7 +101,7 @@ class Player:
     def update(self, belief, obs, ships_hit, remaining_ships):
         for i in range(100):
             if obs[i] != '-':
-                belief[i] = -10000
+                belief[i] = -float("inf")
         for ship_id in remaining_ships:
             parts = remaining_ships[ship_id]
             if parts == 0:
