@@ -13,9 +13,9 @@ Battleship game and various AI
 ### Play hunting strategy
 #### Average: 60.174 moves
 ![Alt text](pics/hunt.png "Hunt")
-![Alt text](pics/hunt_state.png "Hunt_stat")
+![Alt text](pics/hunt_stat.png "Hunt_stat")
 
 ### Play smart strategy
 #### Average: 44.038 moves
 ![Alt text](pics/smart.png "Smart")
-![Alt text](pics/smart_state.png "Smart_stat")
+![Alt text](pics/smart_stat.png "Smart_stat")
