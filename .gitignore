@@ -5,6 +5,7 @@ __pycache__/
 .board.py.swp
 .main.py.swp
 .player.py.swp
+.benchmark.py.swp
 
 # C extensions
 *.so

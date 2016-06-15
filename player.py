@@ -10,6 +10,8 @@ import copy
 
 class Player:
     def __init__(self, board):
+        """ A player with AI's strategy to play the battleship game """
+
         self.board = board
         self.remaining_ships = {}
         self.moves = []
@@ -17,16 +19,22 @@ class Player:
 
 
     def won(self):
+        """ A helper function to determine whether the game is won """
+
         return sum(self.remaining_ships.values()) == 0
 
 
     def reset(self):
+        """ A helper function to reset player's game state to the original configuration """
+
         self.remaining_ships = {"1":5, "2":4, "3":3, "4":3, "5":2}
         self.moves = ["".join(move) for move in list(itertools.product(list("ABCDEFGHIJ"), list("0123456789")))]
         self.move_counter = 0
 
         
     def get_neighbor_moves(self, move):
+        """ A helper function to retrieve neighboring moves including corner and edges """
+
         col, row = move[0], move[1]        
         moves = []
         moves.append(chr(ord(col)+1) + row)
@@ -41,6 +49,8 @@ class Player:
     
 
     def play_random(self):
+        """ Strategy 1: Randomly play a move unto victory """
+
         self.reset()
         random.shuffle(self.moves)
         while not self.won():
@@ -52,6 +62,8 @@ class Player:
 
 
     def play_hunt(self):
+        """ Strategy 2: Randomly play along diagonals, locate ship if hit"""
+
         self.reset()
         self.moves = ['A0', 'A2', 'A4', 'A6', 'A8', 'B1', 'B3', 'B5', 'B7', 'B9', 
                       'C0', 'C2', 'C4', 'C6', 'C8', 'D1', 'D3', 'D5', 'D7', 'D9', 
@@ -74,6 +86,11 @@ class Player:
 
 
     def play_smart(self):
+        """ Strategy 3: Use inference to attribute probabilities to square on the board
+            that have the highest chance of resulting in a hit given what moves have been
+            played and observed 
+        """
+
         self.reset()
         observations = ['-']*100
         ships_hit = []
@@ -99,6 +116,9 @@ class Player:
         return self.move_counter
 
     def update(self, belief, obs, ships_hit, remaining_ships):
+        """ A helper function used by play_smart to update board probabilities 
+            using observations and infomation on remaining hits """
+
         for i in range(100):
             if obs[i] != '-':
                 belief[i] = -float("inf")
@@ -204,15 +224,9 @@ class Player:
 
 
     def _convert_index_to_move(self, index):
+        """ Helper functions to convert board index to valid move on the board """
+
         cols = list("ABCDEFGHIJ")
         rows = list("0123456789")
         return cols[index%10] + rows[index/10]
-
-
-
-
-
-
-
-
 
